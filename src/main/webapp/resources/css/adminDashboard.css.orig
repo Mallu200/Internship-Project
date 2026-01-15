@@ -1,0 +1,58 @@
+/* Layout & Global */
+html, body { height: 100%; }
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f4f7fa;
+    padding-top: 65px;
+}
+
+.fw-800 { font-weight: 800; }
+
+/* Hero Section Branding */
+.hero-section {
+    background: linear-gradient(135deg, #101214 0%, #1c1f22 100%);
+    color: white;
+    padding: 60px 0 100px;
+    margin-bottom: -40px;
+}
+
+/* Navigation & Dropdown */
+.navbar-brand { letter-spacing: -0.5px; }
+.dropdown-menu { border-radius: 12px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+.dropdown-item { font-size: 0.85rem; padding: 0.7rem 1.25rem; }
+.dropdown-header { text-transform: uppercase; font-size: 0.7rem; color: #adb5bd; font-weight: 700; }
+
+/* Dashboard Content */
+.section-title {
+    font-weight: 700;
+    color: #495057;
+    margin-bottom: 20px;
+    border-left: 5px solid #0d6efd;
+    padding-left: 15px;
+}
+
+.stats-card { background: white; transition: transform 0.3s ease; }
+.stats-card:hover { transform: translateY(-5px); }
+
+.admin-card {
+    background: white;
+    border-radius: 1.25rem;
+    padding: 2rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+.admin-card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+.admin-card.highlighted { border: 1.5px solid rgba(220, 53, 69, 0.1); }
+
+.icon-box {
+    width: 3.5rem; height: 3.5rem; border-radius: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.75rem; margin-bottom: 1.25rem;
+}
+
+/* Footer Fix */
+.admin-footer { background: white; font-size: 0.85rem; }
+.bg-dark { background-color: #101214 !important; }

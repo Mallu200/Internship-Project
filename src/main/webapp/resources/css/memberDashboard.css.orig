@@ -1,0 +1,55 @@
+/* --- Global Layout Logic --- */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Pushes the footer to the bottom */
+main {
+    flex: 1 0 auto;
+    padding-top: 100px;
+    padding-bottom: 40px;
+}
+
+/* --- Header Styling --- */
+.navbar {
+    background-color: #1a1d20 !important; /* Matches your dark header */
+}
+
+/* --- Professional Footer (Fixed & Standardized) --- */
+.footer-custom {
+    flex-shrink: 0;
+    background-color: #ffffff !important; /* Pure white background */
+    border-top: 1px solid #dee2e6; /* Thin gray line */
+    padding: 1rem 0;
+    width: 100%;
+}
+
+.footer-flex-container {
+    display: flex;
+    justify-content: space-between; /* Copyright left, Time right */
+    align-items: center;
+}
+
+.footer-brand {
+    font-size: 0.85rem;
+    color: #495057;
+}
+
+#datetime {
+    font-weight: 600;
+    color: #0d6efd; /* Theme blue */
+    font-size: 0.85rem;
+    background: #f1f7ff; /* Subtle blue pill */
+    padding: 5px 15px;
+    border-radius: 50px;
+    font-variant-numeric: tabular-nums; /* Prevents text jumping */
+}

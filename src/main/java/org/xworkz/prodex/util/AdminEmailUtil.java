@@ -1,0 +1,77 @@
+package org.xworkz.prodex.util;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Component;
+import org.xworkz.prodex.dto.ProductPurchaseDto;
+
+import javax.mail.internet.MimeMessage;
+import java.util.Objects;
+
+@Component
+public class AdminEmailUtil {
+
+    private static JavaMailSender mailSender;
+
+    private static final String ADMIN_EMAIL = "chapisgarmallikarjun@gmail.com";
+
+    @Autowired
+    public void setMailSender(JavaMailSender mailSender) {
+        AdminEmailUtil.mailSender = mailSender;
+    }
+
+    public static boolean sendAdminNotificationEmail(ProductPurchaseDto requestDto, String placerName, String senderEmail) {
+        if (mailSender == null) {
+            return false;
+        }
+
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+
+            String from = (senderEmail == null || senderEmail.trim().isEmpty()) ? ADMIN_EMAIL : senderEmail;
+
+            helper.setFrom(from);
+            helper.setTo(ADMIN_EMAIL);
+            helper.setSubject("🚨 URGENT: New Purchase Request Submitted by " + Objects.toString(placerName, "Unknown"));
+            helper.setText(Objects.requireNonNull(buildEmailContent(requestDto, Objects.toString(placerName, "Unknown")), "Email content must not be null"), true);
+
+            mailSender.send(mimeMessage);
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private static String buildEmailContent(ProductPurchaseDto dto, String placerName) {
+        String itemName = Objects.toString(dto == null ? null : dto.getItemName(), "");
+        String stock = Objects.toString(dto == null ? null : dto.getStockInHand(), "0");
+        String price = dto == null ? "0.00" : String.format("%.2f", dto.getPurchasePrice());
+        String dueDate = Objects.toString(dto == null ? null : dto.getOrderDueDate(), "");
+        String customerName = Objects.toString(dto == null ? null : dto.getCustomerName(), "");
+
+        return "<html>"
+                + "<body style='font-family: Arial, sans-serif;'>"
+                + "<h2>New Product Purchase Request Received</h2>"
+                + "<p>A new request has been submitted by <b>" + Objects.toString(placerName, "Unknown") + "</b> and requires your review.</p>"
+                + "<hr/>"
+                + "<table style='border-collapse: collapse; width: 100%;'>"
+                + "<tr><td style='padding: 8px; border: 1px solid #ddd; font-weight: bold;'>Item Name:</td>"
+                + "<td style='padding: 8px; border: 1px solid #ddd;'>" + itemName + "</td></tr>"
+                + "<tr><td style='padding: 8px; border: 1px solid #ddd; font-weight: bold;'>Requested Quantity:</td>"
+                + "<td style='padding: 8px; border: 1px solid #ddd;'>" + stock + " units</td></tr>"
+                + "<tr><td style='padding: 8px; border: 1px solid #ddd; font-weight: bold;'>Estimated Cost (per unit):</td>"
+                + "<td style='padding: 8px; border: 1px solid #ddd;'>Rs. " + price + "</td></tr>"
+                + "<tr><td style='padding: 8px; border: 1px solid #ddd; font-weight: bold;'>Fulfillment Target Date:</td>"
+                + "<td style='padding: 8px; border: 1px solid #ddd;'>" + dueDate + "</td></tr>"
+                + "<tr><td style='padding: 8px; border: 1px solid #ddd; font-weight: bold;'>Debit Customer:</td>"
+                + "<td style='padding: 8px; border: 1px solid #ddd;'>" + customerName + "</td></tr>"
+                + "</table>"
+                + "<p style='margin-top: 20px;'>Please log in to the Admin Dashboard to review this request.</p>"
+                + "<p>Thank you,<br/>Prodex System</p>"
+                + "</body></html>";
+    }
+}

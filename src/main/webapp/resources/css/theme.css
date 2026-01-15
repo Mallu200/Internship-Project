@@ -1,0 +1,96 @@
+:root{
+    --primary:#0d6efd;
+    --secondary:#6c757d;
+    --bg:#f8f9fa;
+    --card-bg:#ffffff;
+    --muted:#6c757d;
+    --brand-font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+html,body{height:100%;}
+body{
+    font-family:var(--brand-font);
+    background:var(--bg);
+    color:#212529;
+}
+
+a{color:var(--primary);}
+
+.navbar-brand{font-family:var(--brand-font);}
+
+.card{background:var(--card-bg);}
+
+.btn-primary{background:var(--primary); border-color:var(--primary);}
+.btn-primary:hover{background:#0b5ed7; border-color:#0b5ed7}
+
+.footer-custom{background:var(--card-bg)}
+
+/* Login card adjustments */
+.login-wrapper{min-height:100vh; display:flex; align-items:center;}
+.login-card{max-width:520px; border-radius:12px}
+
+/* Action cards */
+.action-card i{font-size:2.2rem}
+.action-card h5{margin-bottom:.5rem}
+
+/* Small helpers */
+.small{font-size:.85rem}
+
+/* Utility overrides to harmonize look */
+.text-primary{color:var(--primary) !important}
+.text-secondary{color:var(--secondary) !important}
+
+/* Responsive tweaks */
+@media (max-width:576px){
+    .login-card{margin:1rem}
+}
+
+/* Admin profile helper styles moved from inline jsp */
+.profile-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border: none;
+}
+.form-control {
+    border-radius: 10px;
+    padding: 12px 15px;
+    border: 1px solid #dee2e6;
+}
+.form-control:focus {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    border-color: #0d6efd;
+}
+.breadcrumb-item a { text-decoration: none; color: var(--muted); }
+
+/* Administrator approval center styles */
+.header-custom { background: white; border-bottom: 2px solid var(--primary); }
+.table-header-prodex { background-color: var(--primary); color: white; }
+.card-prodex { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.btn-approve { background-color: #38a169; color: white; border-radius: 20px; }
+.btn-reject { background-color: #e53e3e; color: white; border-radius: 20px; }
+.badge-qty { background-color: #edf2f7; color: #2d3748; font-weight: 700; padding: 0.5em 1em; }
+
+/* Administrator dashboard helpers */
+.hero-section { background: linear-gradient(135deg, #212529 0%, #343a40 100%); }
+.stats-card { transition: transform 0.2s; border: none !important; border-radius: 15px !important; }
+.stats-card:hover { transform: translateY(-5px); }
+.admin-card { transition: all 0.3s ease; border: 1px solid #eee !important; border-radius: 20px !important; }
+.admin-card:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important; transform: translateY(-5px); }
+.icon-box { width: 60px; height: 60px; border-radius: 15px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
+.navbar { backdrop-filter: blur(10px); background-color: rgba(33, 37, 41, 0.95) !important; }
+
+/* Purchase history helpers */
+.status-badge { width: 100px; text-align: center; }
+.table-card { border-radius: 15px; overflow: hidden; }
+
+/* Pending requests helpers */
+.table-hover tbody tr:hover { background-color: #f8f9fa; transition: 0.3s; }
+.badge-id { font-family: monospace; font-size: 0.9rem; }
+
+/* Customer detail helpers (moved from JSP inline styles) */
+.header-custom { background: var(--brand-font); }
+.brand-title { font-weight: 800; font-size: 1.5rem; letter-spacing: 1px; }
+.brand-subtitle { color: var(--primary); font-weight: 400; margin-left: 4px; }
+.detail-input:disabled { background-color: #f8f9fa; border: 1px solid transparent; color: #495057; font-weight: 500; }
+.section-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); margin-bottom: 1.5rem; border-bottom: 2px solid #f0f0f0; padding-bottom: 5px; }

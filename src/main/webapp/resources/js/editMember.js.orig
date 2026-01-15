@@ -1,0 +1,381 @@
+document.addEventListener("DOMContentLoaded", function () {
+    if (typeof axios === 'undefined') {
+        console.error('axios is not available. Aborting AJAX features for editMember.js.');
+        return;
+    }
+    // --- Global Field References ---
+    const form = document.getElementById("memberForm");
+    const saveBtn = document.getElementById("saveMemberBtn");
+
+    const userName = document.getElementById("userName");
+    const role = document.getElementById("role");
+    const email = document.getElementById("email");
+    const contact = document.getElementById("contact");
+    const accountLocked = document.getElementById("accountLocked");
+
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    const passwordFieldsSection = document.getElementById('passwordFieldsSection');
+    const newPasswordInput = document.getElementById('newPassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+
+    // --- Global Error Spans ---
+    const errors = {
+        userName: document.getElementById("userNameError"),
+        role: document.getElementById("roleError"),
+        email: document.getElementById("emailError"),
+        contact: document.getElementById("contactError"),
+        status: document.getElementById("statusError"),
+        newPassword: document.getElementById("newPasswordError"),
+        confirmPassword: document.getElementById("confirmPasswordError")
+    };
+
+    // Store original button HTML for quick restore
+    const originalSaveButtonHtml = saveBtn.innerHTML;
+    const originalToggleButtonHtml = togglePasswordBtn.innerHTML; // Store original toggle button HTML
+
+
+    // --- Helper Functions ---
+
+    /**
+     * Updates the footer datetime display.
+     */
+    function updateDateTime() {
+        const now = new Date();
+        const options = {
+            year: 'numeric', month: 'short', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', hour12: true
+        };
+        const datetimeElement = document.getElementById('datetime');
+        if (datetimeElement) {
+            const dateStr = now.toLocaleDateString('en-US', options);
+            datetimeElement.textContent = `| ${dateStr}`;
+        }
+    }
+
+    function showError(field, message) {
+        field.classList.add("is-invalid");
+        field.classList.remove("is-valid");
+
+        // Determine which error span to use
+        const errorSpanId = field.id === 'newPassword' ? 'newPassword' :
+                            field.id === 'confirmPassword' ? 'confirmPassword' :
+                            field.id;
+        const errorSpan = errors[errorSpanId];
+
+        if (errorSpan) {
+            errorSpan.textContent = message;
+            errorSpan.style.display = "block";
+        }
+        updateSubmitButton();
+    }
+
+    function clearError(field) {
+        field.classList.remove("is-invalid");
+        field.classList.add("is-valid");
+
+        // Determine which error span to use
+        const errorSpanId = field.id === 'newPassword' ? 'newPassword' :
+                            field.id === 'confirmPassword' ? 'confirmPassword' :
+                            field.id;
+        const errorSpan = errors[errorSpanId];
+
+        if (errorSpan) {
+            errorSpan.textContent = '';
+            errorSpan.style.display = "none";
+        }
+        updateSubmitButton();
+    }
+
+    function isPasswordSectionVisible() {
+        return passwordFieldsSection.style.display !== 'none';
+    }
+
+    function updateSubmitButton() {
+        // Check local validity of all main fields
+        const allMainFieldsValid =
+            !document.querySelector("#userName.is-invalid, #role.is-invalid, #email.is-invalid, #contact.is-invalid, #accountLocked.is-invalid");
+
+        // Check if main fields are filled
+        const allMainFieldsFilled =
+            userName.value.trim() !== "" &&
+            role.value.trim() !== "" &&
+            email.value.trim() !== "" &&
+            contact.value.trim() !== "" &&
+            accountLocked.value.trim() !== "";
+
+        let passwordFieldsValid = true;
+        if (isPasswordSectionVisible()) {
+            // If password fields are visible, check if they have errors
+            passwordFieldsValid = !document.querySelector("#newPassword.is-invalid, #confirmPassword.is-invalid");
+        }
+
+        saveBtn.disabled = !(allMainFieldsValid && allMainFieldsFilled && passwordFieldsValid);
+    }
+
+    // --- Individual field validation ---
+
+    function validateUserName() {
+        const value = userName.value.trim();
+        if (value.length < 3 || value.length > 50) {
+            showError(userName, "User name must be between 3 and 50 characters.");
+            return false;
+        }
+        clearError(userName);
+        return true;
+    }
+
+    function validateRole() {
+        if (role.value === "") {
+            showError(role, "Member role is required.");
+            return false;
+        }
+        clearError(role);
+        return true;
+    }
+
+    function validateStatus() {
+        if (accountLocked.value === "") {
+            showError(accountLocked, "Account status is required.");
+            return false;
+        }
+        clearError(accountLocked);
+        return true;
+    }
+
+    async function validateEmail() {
+        const emailVal = email.value.trim();
+        const originalEmail = email.getAttribute("data-original");
+
+        if (emailVal === "") {
+            showError(email, "Email cannot be blank.");
+            return false;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailVal)) {
+            showError(email, "Enter a valid email address.");
+            return false;
+        }
+
+        if (emailVal === originalEmail) {
+            clearError(email);
+            return true;
+        }
+
+        // Show loading state for async check
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Checking Email...`;
+
+        let isValid = false;
+        try {
+            // NOTE: The endpoint is relative as per your original code
+            const response = await axios.get("checkMemberEmail", { params: { email: emailVal } });
+            const data = response.data;
+
+            if (data.status === "AVAILABLE") {
+                clearError(email);
+                isValid = true;
+            } else {
+                showError(email, data.message || "Email already exists.");
+            }
+        } catch {
+            showError(email, "Error checking email. Please try again.");
+        } finally {
+            // Restore button state
+            saveBtn.innerHTML = originalSaveButtonHtml;
+            updateSubmitButton();
+        }
+        return isValid;
+    }
+
+    async function validateContact() {
+        const contactVal = contact.value.trim();
+        const originalContact = contact.getAttribute("data-original");
+
+        if (contactVal === "") {
+            showError(contact, "Contact cannot be blank.");
+            return false;
+        }
+
+        const contactRegex = /^(\+\d{1,3}[- ]?)?\d{10}$/; // Allows optional country code, enforces 10 digits
+        if (!contactRegex.test(contactVal)) {
+            showError(contact, "Enter a valid 10-digit phone number.");
+            return false;
+        }
+
+        if (contactVal === originalContact) {
+            clearError(contact);
+            return true;
+        }
+
+        // Show loading state for async check
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Checking Contact...`;
+
+        let isValid = false;
+        try {
+            // NOTE: The endpoint is relative as per your original code
+            const response = await axios.get("checkMemberContact", { params: { contact: contactVal } });
+            const data = response.data;
+
+            if (data.status === "AVAILABLE") {
+                clearError(contact);
+                isValid = true;
+            } else {
+                showError(contact, data.message || "Contact already exists.");
+            }
+        } catch {
+            showError(contact, "Error checking contact. Please try again.");
+        } finally {
+            // Restore button state
+            saveBtn.innerHTML = originalSaveButtonHtml;
+            updateSubmitButton();
+        }
+        return isValid;
+    }
+
+    function validatePasswords() {
+        if (!isPasswordSectionVisible()) {
+            // Only validate if section is visible
+            return true;
+        }
+
+        let isValid = true;
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const minLength = 8;
+
+        // Case 1: Both are blank (Allowed: means no password change)
+        if (newPassword === '' && confirmPassword === '') {
+            clearError(newPasswordInput);
+            clearError(confirmPasswordInput);
+            return true;
+        }
+
+        // Regex for strong password: 8+ chars, at least one digit, one lowercase, one uppercase, one special character
+        const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+        // Case 2: New password validation
+        if (newPassword.length > 0 && newPassword.length < minLength) {
+            showError(newPasswordInput, `Password must be at least ${minLength} characters.`);
+            isValid = false;
+        } else if (newPassword.length > 0 && !strongPasswordRegex.test(newPassword)) {
+             showError(newPasswordInput, `Password must contain 8+ chars, including lower, upper, digit, and special char.`);
+             isValid = false;
+        } else if (newPassword !== '' && confirmPassword === '') {
+            showError(confirmPasswordInput, 'Confirmation password is required.');
+            isValid = false;
+        } else if (newPassword === '' && confirmPassword !== '') {
+            showError(newPasswordInput, 'New password is required.');
+            isValid = false;
+        } else {
+            clearError(newPasswordInput);
+        }
+
+        // Case 3: Passwords match validation
+        if (newPassword.length >= minLength && newPassword !== confirmPassword) {
+            showError(confirmPasswordInput, 'Passwords do not match.');
+            isValid = false;
+        } else if (newPassword.length >= minLength && newPassword === confirmPassword) {
+            clearError(confirmPasswordInput);
+        }
+
+        return isValid;
+    }
+
+
+    // --- Password Toggle Logic ---
+    if (togglePasswordBtn && passwordFieldsSection) {
+        // Initial setup: Ensure fields are hidden
+        passwordFieldsSection.style.display = 'none';
+
+        togglePasswordBtn.addEventListener('click', function() {
+            const isHidden = passwordFieldsSection.style.display === 'none';
+
+            if (isHidden) {
+                // Show fields and set button to red 'Cancel' state
+                passwordFieldsSection.style.display = 'block';
+                togglePasswordBtn.innerHTML = '<i class="bi bi-x-circle me-2"></i> Cancel Password Reset';
+                // Switch button color from secondary to danger (red)
+                togglePasswordBtn.classList.replace('btn-prodex-secondary', 'btn-danger');
+                newPasswordInput.focus();
+            } else {
+                // Hide fields and clear their values/errors, restore button state
+                newPasswordInput.value = '';
+                confirmPasswordInput.value = '';
+                clearError(newPasswordInput);
+                clearError(confirmPasswordInput);
+
+                passwordFieldsSection.style.display = 'none';
+                // Switch button color from danger (red) back to secondary, restore original text
+                togglePasswordBtn.classList.replace('btn-danger', 'btn-prodex-secondary');
+                togglePasswordBtn.innerHTML = originalToggleButtonHtml;
+            }
+            validatePasswords(); // Clear any visual password errors after hiding
+            updateSubmitButton(); // Re-evaluate button state after toggle
+        });
+    }
+
+
+    // --- Real-time validation triggers ---
+    userName.addEventListener("input", validateUserName);
+    role.addEventListener("change", validateRole);
+    accountLocked.addEventListener("change", validateStatus);
+
+    // Async uniqueness check on blur
+    email.addEventListener("blur", validateEmail);
+    contact.addEventListener("blur", validateContact);
+
+    // Password validation on input (if visible)
+    if (newPasswordInput) newPasswordInput.addEventListener('input', validatePasswords);
+    if (confirmPasswordInput) confirmPasswordInput.addEventListener('input', validatePasswords);
+
+
+    // --- Prefilled validation on load ---
+    function validateAllOnLoad() {
+        validateUserName();
+        validateRole();
+        validateStatus();
+        // Skip API check on load if unchanged or valid by server (JSP ensures fields are filled)
+        if (email.value.trim() !== "") clearError(email);
+        if (contact.value.trim() !== "") clearError(contact);
+
+        updateSubmitButton();
+    }
+    validateAllOnLoad();
+
+    // --- On form submit ---
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        // 1. Run all local validations
+        const validUser = validateUserName();
+        const validRole = validateRole();
+        const validStatus = validateStatus();
+        const validPassword = validatePasswords(); // Checks validity based on visibility
+
+        // 2. Only run async checks if local format is valid
+        // NOTE: Await ensures these run sequentially
+        const validEmail = await validateEmail();
+        const validContact = await validateContact();
+
+        if (validUser && validRole && validEmail && validContact && validStatus && validPassword) {
+            // Keep the spinner visible while the form submits
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Updating...';
+
+            form.submit();
+        } else {
+            // Scroll to the top if validation failed
+            window.scrollTo({ top: 0, behavior: "smooth" });
+
+            // Restore button state if async checks failed
+            saveBtn.innerHTML = originalSaveButtonHtml;
+            updateSubmitButton();
+        }
+    });
+
+    // Initial clock setup
+    updateDateTime();
+    setInterval(updateDateTime, 60000); // Update every minute
+});

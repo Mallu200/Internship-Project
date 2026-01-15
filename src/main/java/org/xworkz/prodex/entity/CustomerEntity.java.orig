@@ -1,0 +1,126 @@
+package org.xworkz.prodex.entity;
+
+import lombok.Data;
+import org.xworkz.prodex.enums.CustomerType;
+import org.xworkz.prodex.enums.PaymentMode;
+
+import javax.persistence.*;
+import java.time.LocalDateTime;
+
+@Data
+@Entity
+@Table(name = "customer_info")
+@NamedQueries({
+        // This is the specific one causing your 500 Error
+        @NamedQuery(
+                name = "CustomerEntity.findPaginated",
+                query = "SELECT c FROM CustomerEntity c ORDER BY c.customerId DESC"
+        ),
+        @NamedQuery(
+                name = "CustomerEntity.countAll",
+                query = "SELECT COUNT(c) FROM CustomerEntity c"
+        ),
+        @NamedQuery(
+                name = "CustomerEntity.findAllCustomers",
+                query = "SELECT c FROM CustomerEntity c"
+        ),
+        @NamedQuery(
+                name = "CustomerEntity.findCustomerByEmail",
+                query = "SELECT c FROM CustomerEntity c WHERE c.email = :email"
+        ),
+        @NamedQuery(
+                name = "CustomerEntity.findCustomerByContact",
+                query = "SELECT c FROM CustomerEntity c WHERE c.contact = :contact"
+        ),
+        @NamedQuery(
+                name = "CustomerEntity.findCustomerByTaxId",
+                query = "SELECT c FROM CustomerEntity c WHERE c.taxId = :taxId"
+        ),
+        @NamedQuery(
+                name = "CustomerEntity.deleteCustomerById",
+                query = "DELETE FROM CustomerEntity c WHERE c.customerId = :customerId"
+        ),
+        @NamedQuery(
+                name = "CustomerEntity.searchPaginatedByAllFields",
+                query = "SELECT c FROM CustomerEntity c WHERE " +
+                        "(:customerName IS NULL OR c.customerName LIKE :customerName) AND " +
+                        "(:customerType IS NULL OR c.customerType = :customerType) AND " +
+                        "(:email IS NULL OR c.email LIKE :email) AND " +
+                        "(:contact IS NULL OR c.contact LIKE :contact) " +
+                        "ORDER BY c.customerId DESC"
+        ),
+        @NamedQuery(
+                name = "CustomerEntity.countSearchByAllFields",
+                query = "SELECT COUNT(c) FROM CustomerEntity c WHERE " +
+                        "(:customerName IS NULL OR c.customerName LIKE :customerName) AND " +
+                        "(:customerType IS NULL OR c.customerType = :customerType) AND " +
+                        "(:email IS NULL OR c.email LIKE :email) AND " +
+                        "(:contact IS NULL OR c.contact LIKE :contact)"
+        )
+})
+public class CustomerEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "customer_id")
+    private Long customerId;
+
+    @Column(name = "customer_name", nullable = false)
+    private String customerName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "customer_type", nullable = false)
+    private CustomerType customerType;
+
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false, unique = true)
+    private String contact;
+
+    @Column(name = "tax_id", unique = true)
+    private String taxId;
+
+    @Column(nullable = false)
+    private String country;
+
+    @Column(nullable = false)
+    private String state;
+
+    @Column(nullable = false)
+    private String city;
+
+    @Column(name = "pin_code", nullable = false)
+    private String pinCode;
+
+    @Column(name = "billing_address", nullable = false, columnDefinition = "TEXT")
+    private String billingAddress;
+
+    @Column(name = "shipping_same_as_billing", nullable = false)
+    private boolean shippingSameAsBilling;
+
+    @Column(name = "shipping_address", columnDefinition = "TEXT")
+    private String shippingAddress;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_mode", nullable = false)
+    private PaymentMode paymentMode;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    // --- Lifecycle Hooks for Timestamps ---
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}

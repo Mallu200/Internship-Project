@@ -1,0 +1,264 @@
+/* Root Variables */
+:root {
+    --soft-gray: #F5F5F5;
+    --white: #FFFFFF;
+    --text-dark: #333333;
+    --accent-color: #7459A7;
+    --pastel-mint: #B6EAD7;
+    --pastel-lavender: #D2B7E5;
+    --prodex-primary: var(--accent-color);
+    --prodex-secondary-bg: var(--pastel-lavender);
+    --prodex-dark: var(--text-dark);
+    --prodex-success: #198754;
+    --prodex-danger: #dc3545;
+    --prodex-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    --header-footer-height: 70px;
+}
+
+/* Body Styling */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--soft-gray);
+    color: var(--text-dark);
+    min-height: 100vh;
+    padding-top: var(--header-footer-height);
+    padding-bottom: var(--header-footer-height);
+    margin: 0;
+}
+
+/* Container Layout */
+.container {
+    max-width: 1000px;
+    /* Reduced top margin for the main content container */
+    margin-top: 1.5rem;
+}
+
+/* Header Wrapper */
+.header-custom {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--header-footer-height);
+    background-color: var(--pastel-mint);
+    color: var(--text-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    z-index: 1030;
+}
+
+/* Navbar Left and Right */
+.navbar-left, .navbar-right {
+    display: flex;
+    align-items: center;
+    min-width: 150px;
+}
+
+/* Navbar Center */
+.navbar-center {
+    flex-direction: column;
+    text-align: center;
+    line-height: 1;
+}
+
+/* Brand Title */
+.brand-title {
+    font-weight: 800;
+    font-size: 1.8rem;
+    color: var(--accent-color);
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Brand Subtitle */
+.brand-subtitle {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    opacity: 0.8;
+}
+
+/* Navbar Logo */
+.navbar-logo {
+    width: 150px;
+    height: auto;
+    border-radius: 4px;
+    margin-right: 0.5rem;
+    border: 2px solid var(--accent-color);
+    padding: 2px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Custom Card Styling */
+.card-custom {
+    background-color: var(--white);
+    border-radius: 12px;
+    /* REDUCED PADDING: Changed from 2.5rem to 1.75rem for a tighter card */
+    padding: 1.75rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid #E0E0E0;
+}
+
+/* Card Heading 2 */
+.card-custom h2 {
+    font-weight: 700;
+    color: var(--accent-color);
+    font-size: 1.75rem;
+    border-bottom: 2px solid var(--soft-gray);
+    /* Reduced bottom padding */
+    padding-bottom: 8px;
+}
+
+/* Section Header */
+.section-header {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--accent-color);
+    /* Reduced margin */
+    margin-top: 1rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 5px;
+    border-bottom: 2px solid var(--pastel-lavender);
+}
+
+/* Form Label */
+.form-label {
+    font-weight: 600;
+    color: var(--text-dark);
+    /* Reduced bottom margin */
+    margin-bottom: 0.2rem;
+    font-size: 0.9rem;
+}
+
+/* Error Message Styles */
+.error-message {
+    display: none;
+    color: var(--prodex-danger);
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+/* Input Error Highlight */
+.input-error-highlight {
+    border-color: var(--prodex-danger) !important;
+}
+
+/* Input Error Focus */
+.input-error-highlight:focus {
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}
+
+/* Read-Only Country Input */
+#countryDisplay {
+    background-color: var(--soft-gray) !important;
+    cursor: default;
+}
+
+/* 🚫 ENFORCED REMOVAL OF VALIDATION ICONS/CHECKMARKS 🚫 */
+
+/* KEY FIX: Increased specificity for form controls to beat Bootstrap defaults */
+input.form-control.is-valid,
+textarea.form-control.is-valid,
+select.form-select.is-valid,
+input.form-control.is-invalid,
+textarea.form-control.is-invalid,
+select.form-select.is-invalid {
+    /* Absolutely removes the checkmark/X background image */
+    background-image: none !important;
+    /* Ensures padding is consistent without the icon */
+    padding-right: 0.75rem !important;
+}
+
+/* Hide any custom icons or spinners in the status spans */
+#emailStatus i,
+#contactStatus i,
+#taxIdStatus i, /* Ensuring taxId status icons are also covered */
+#emailStatus .spinner-border,
+#contactStatus .spinner-border,
+#taxIdStatus .spinner-border {
+    display: none !important;
+}
+
+/* --- BUTTON STYLES --- */
+
+/* Primary Button Style */
+.btn-prodex-primary {
+  background-color: var(--accent-color);
+  color: var(--soft-gray);
+  border: none;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+/* Primary Button Hover and Disabled */
+.btn-prodex-primary:hover:not(:disabled) {
+  color: var(--text-dark);
+  background-color: var(--pastel-mint);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Primary Button Disabled */
+.btn-prodex-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* --- FOOTER STYLES --- */
+
+/* Footer Wrapper */
+.footer-custom {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: var(--header-footer-height);
+    background-color: var(--pastel-mint);
+    color: var(--text-dark);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+    z-index: 1020;
+}
+
+/* Footer Date Time */
+.footer-custom #datetime {
+    position: absolute;
+    right: 20px;
+    bottom: 8px;
+    font-size: 0.8rem;
+    color: var(--text-dark);
+    opacity: 0.7;
+    display: block;
+}
+
+/* --- Update Customer Button (Green Variant) --- */
+.btn.btn-update-customer {
+    background-color: #198754 !important;
+    color: #fff !important;
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 8px 20px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn.btn-update-customer:hover:not(:disabled) {
+    background-color: #157347 !important;
+    color: #fff !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.btn.btn-update-customer:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

@@ -1,0 +1,50 @@
+package org.xworkz.prodex.repository.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+import org.xworkz.prodex.entity.EnrollmentEntity;
+import org.xworkz.prodex.repository.AdministratorRepository;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
+
+@Repository
+public class AdministratorRepositoryImpl implements AdministratorRepository {
+
+    @Autowired
+    private EntityManagerFactory factory;
+
+    @Override
+    public EnrollmentEntity findAdminByEmail(String email) {
+        EntityManager manager = factory.createEntityManager();
+        try {
+            return manager.createNamedQuery("EnrollmentEntity.findAdminByEmail", EnrollmentEntity.class)
+                    .setParameter("email", email)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        } finally {
+            manager.close();
+        }
+    }
+
+    @Override
+    public boolean updateAdmin(EnrollmentEntity entity) {
+        EntityManager manager = factory.createEntityManager();
+        try {
+            manager.getTransaction().begin();
+            manager.merge(entity);
+            manager.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (manager.getTransaction().isActive()) {
+                manager.getTransaction().rollback();
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            manager.close();
+        }
+    }
+}

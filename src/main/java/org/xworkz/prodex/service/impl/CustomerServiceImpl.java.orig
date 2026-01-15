@@ -1,0 +1,176 @@
+package org.xworkz.prodex.service.impl;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.xworkz.prodex.dto.CustomerDto;
+import org.xworkz.prodex.entity.CustomerEntity;
+import org.xworkz.prodex.enums.CustomerType;
+import org.xworkz.prodex.repository.CustomerRepository;
+import org.xworkz.prodex.service.CustomerService;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+@Service
+public class CustomerServiceImpl implements CustomerService {
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    // --- Helper: Convert Entity List to DTO List ---
+    private List<CustomerDto> convertToDtoList(List<CustomerEntity> entities) {
+        if (entities == null || entities.isEmpty()) return Collections.emptyList();
+        return entities.stream()
+                .filter(Objects::nonNull)
+                .map(this::convertToDto) // Using the helper method below
+                .collect(Collectors.toList());
+    }
+
+    // --- Helper: Convert Single Entity to DTO ---
+    private CustomerDto convertToDto(CustomerEntity entity) {
+        if (entity == null) return null;
+        CustomerDto dto = new CustomerDto();
+        BeanUtils.copyProperties(entity, dto);
+        return dto;
+    }
+
+    // --- Helper: Wrap Search Parameters for SQL LIKE ---
+    private String wrap(String param) {
+        return (param != null && !param.trim().isEmpty()) ? "%" + param.trim() + "%" : null;
+    }
+
+    // --- 1. REGISTER CUSTOMER ---
+    @Override
+    public boolean registerCustomer(CustomerDto customerDto, List<String> serviceErrors) {
+        if (customerDto == null) {
+            serviceErrors.add("Customer data is missing.");
+            return false;
+        }
+
+        try {
+            // Uniqueness Checks
+            if (customerRepository.findCustomerByEmail(customerDto.getEmail()) != null) {
+                serviceErrors.add("Email '" + customerDto.getEmail() + "' is already in use.");
+            }
+            if (customerRepository.findCustomerByContact(customerDto.getContact()) != null) {
+                serviceErrors.add("Contact '" + customerDto.getContact() + "' is already in use.");
+            }
+            if (customerDto.getTaxId() != null && !customerDto.getTaxId().isEmpty()) {
+                if (customerRepository.findCustomerByTaxId(customerDto.getTaxId()) != null) {
+                    serviceErrors.add("Tax ID '" + customerDto.getTaxId() + "' is already registered.");
+                }
+            }
+
+            // Address Sync
+            if (customerDto.isShippingSameAsBilling()) {
+                customerDto.setShippingAddress(customerDto.getBillingAddress());
+            }
+
+            if (!serviceErrors.isEmpty()) return false;
+
+            CustomerEntity entity = new CustomerEntity();
+            BeanUtils.copyProperties(customerDto, entity);
+
+            return customerRepository.saveCustomer(entity);
+        } catch (Exception e) {
+            e.printStackTrace();
+            serviceErrors.add("Error saving customer: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // --- 2. PAGINATION LOGIC ---
+    @Override
+    public List<CustomerDto> getPaginatedCustomers(int currentPage, int pageSize) {
+        int start = Math.max(0, (currentPage - 1) * pageSize);
+        List<CustomerEntity> entities = customerRepository.findPaginatedCustomers(start, pageSize);
+        return convertToDtoList(entities);
+    }
+
+    @Override
+    public long getTotalCustomerCount() {
+        return customerRepository.countAllCustomers();
+    }
+
+    // --- 3. SEARCH LOGIC ---
+    @Override
+    public List<CustomerDto> searchPaginatedCustomers(String name, CustomerType type, String email, String contact, int page, int size) {
+        int start = Math.max(0, (page - 1) * size);
+        List<CustomerEntity> entities = customerRepository.searchPaginatedCustomers(
+                wrap(name), type, wrap(email), wrap(contact), start, size
+        );
+        return convertToDtoList(entities);
+    }
+
+    @Override
+    public long getSearchCustomerCount(String name, CustomerType type, String email, String contact) {
+        return customerRepository.countSearchCustomers(wrap(name), type, wrap(email), wrap(contact));
+    }
+
+    @Override
+    public List<CustomerDto> searchCustomers(String name, CustomerType type, String email, String contact) {
+        List<CustomerEntity> entities = customerRepository.searchCustomers(
+                wrap(name), type, wrap(email), wrap(contact)
+        );
+        return convertToDtoList(entities);
+    }
+
+    // --- 4. FINDERS (Individual Records) ---
+    @Override
+    public CustomerDto getCustomerById(Long customerId) {
+        return convertToDto(customerRepository.findCustomerById(customerId));
+    }
+
+    @Override
+    public CustomerDto findCustomerByEmail(String email) {
+        return convertToDto(customerRepository.findCustomerByEmail(email));
+    }
+
+    @Override
+    public CustomerDto findCustomerByContact(String contact) {
+        return convertToDto(customerRepository.findCustomerByContact(contact));
+    }
+
+    @Override
+    public CustomerDto findCustomerByTaxId(String taxId) {
+        return convertToDto(customerRepository.findCustomerByTaxId(taxId));
+    }
+
+    @Override
+    public List<CustomerDto> getAllCustomers() {
+        return convertToDtoList(customerRepository.findAllCustomers());
+    }
+
+    // --- 5. UPDATE & DELETE ---
+    @Override
+    public boolean updateCustomer(CustomerDto customerDto) {
+        if (customerDto == null || customerDto.getCustomerId() == null) return false;
+
+        try {
+            CustomerEntity existing = customerRepository.findCustomerById(customerDto.getCustomerId());
+            if (existing == null) return false;
+
+            if (customerDto.isShippingSameAsBilling()) {
+                customerDto.setShippingAddress(customerDto.getBillingAddress());
+            }
+
+            // Exclude Id and CreatedAt to keep them immutable during update
+            BeanUtils.copyProperties(customerDto, existing, "customerId", "createdAt");
+            return customerRepository.updateCustomer(existing);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public int deleteCustomer(Long customerId) {
+        if (customerId == null) return 0;
+        return customerRepository.deleteCustomerById(customerId);
+    }
+}

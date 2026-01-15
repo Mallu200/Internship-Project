@@ -1,0 +1,103 @@
+body {
+    background-color: #f0f2f5;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Header & Branding */
+.header-custom {
+    background: #1a1d20;
+    color: white;
+    padding: 1rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.brand-group { display: flex; align-items: baseline; gap: 4px; }
+.brand-title { font-weight: 800; font-size: 1.6rem; color: #0d6efd; letter-spacing: -0.5px; }
+.brand-subtitle { font-weight: 300; font-size: 1.1rem; color: #ffffff; text-transform: uppercase; letter-spacing: 2px; }
+
+.btn-prodex-secondary {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+}
+
+/* Form Card */
+.card-add-customer {
+    background: #fff;
+    border-radius: 16px;
+    border: none;
+    overflow: hidden;
+}
+
+.card-header-form {
+    background: #ffffff;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.card-header-form h2 {
+    font-weight: 800;
+    color: #1a1d20;
+}
+
+/* Section Dividers */
+.section-divider {
+    width: 100%;
+    text-align: left;
+    border-bottom: 1px solid #eef0f2;
+    line-height: 0.1em;
+    margin: 10px 0 20px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #0d6efd;
+    letter-spacing: 1px;
+}
+.section-divider span { background:#fff; padding:0 10px 0 0; }
+
+/* Inputs */
+.form-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+.form-control, .form-select {
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    font-size: 0.95rem;
+}
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+}
+
+/* Primary Button */
+.btn-prodex-primary {
+    background-color: #0d6efd;
+    color: white;
+    font-weight: 700;
+    border-radius: 12px;
+    border: none;
+    transition: all 0.3s;
+}
+.btn-prodex-primary:hover:not(:disabled) {
+    background-color: #0b5ed7;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(13, 110, 253, 0.2);
+}
+.btn-prodex-primary:disabled {
+    background-color: #e2e8f0;
+    color: #94a3b8;
+}
+
+/* Footer */
+.footer-custom {
+    background: #1a1d20;
+    color: #94a3b8;
+    padding: 1.5rem;
+    text-align: center;
+    margin-top: 4rem;
+}

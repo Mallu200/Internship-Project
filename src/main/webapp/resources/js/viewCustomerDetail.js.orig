@@ -1,0 +1,269 @@
+document.addEventListener('DOMContentLoaded', function () {
+    const editToggleBtn = document.getElementById('editToggleBtn');
+    const saveChangesBtn = document.getElementById('saveChangesBtn');
+
+    // Select all form fields that have a 'name' attribute, excluding the one with ID 'customerIdDisplay'
+    const formInputs = document.querySelectorAll('#customerDetailForm [name]:not([name="customerIdDisplay"])');
+    const editModeElements = document.querySelectorAll('.edit-mode-only');
+
+    // Shipping Address Specific Elements
+    const shippingToggle = document.getElementById('shippingToggle');
+    const shippingAddressInput = document.getElementById('shippingAddressInput');
+    const billingAddressInput = document.getElementById('billingAddressInput');
+    const shippingSameAsBillingHidden = document.getElementById('shippingSameAsBilling');
+
+    let isEditMode = false;
+    let initialValues = {};
+    let isChanged = false;
+
+    // --- Validation Regex Patterns (Used by validateField - unchanged) ---
+    const regex = {
+        name: /^[A-Za-z0-9\s.,'-]{1,100}$/,
+        email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        contact: /^[0-9+() -]{5,20}$/,
+        taxId: /^[A-Za-z0-9]{0,20}$/,
+        pinCode: /^[A-Za-z0-9]{3,10}$/
+    };
+
+    // --- Utility Functions (UPDATED: Status Icons Removed) ---
+
+    function showError(input, message) {
+        const errorElement = document.getElementById(input.id.replace('Input', 'Error'));
+        if (errorElement) {
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+        input.classList.add('input-error-highlight');
+
+        // Removed logic to add red X status icon
+        const statusElement = input.parentElement.querySelector('.input-group-text');
+        if (statusElement) {
+            statusElement.innerHTML = ''; // Ensure status icon is cleared
+        }
+    }
+
+    function hideError(input) {
+        const errorElement = document.getElementById(input.id.replace('Input', 'Error'));
+        if (errorElement) {
+            errorElement.style.display = 'none';
+        }
+        input.classList.remove('input-error-highlight');
+
+        // Removed logic to add green checkmark status icon
+        const statusElement = input.parentElement.querySelector('.input-group-text');
+        if (statusElement) {
+            statusElement.innerHTML = ''; // Ensure status icon is cleared
+        }
+    }
+
+    function clearStatus(input) {
+        const statusElement = input.parentElement.querySelector('.input-group-text');
+        if (statusElement) {
+             statusElement.innerHTML = '';
+        }
+        hideError(input);
+    }
+
+    // --- Validation Logic (validateField - unchanged) ---
+    function validateField(input) {
+        // ... (Validation logic here, same as previous version) ...
+        let isValid = true;
+        const value = input.value.trim();
+        const name = input.name;
+
+        if (!isEditMode || input.disabled) return true;
+
+        const isRequired = name !== 'taxId';
+        if (isRequired && value === '') {
+            showError(input, `${name.charAt(0).toUpperCase() + name.slice(1)} is required.`);
+            return false;
+        }
+
+        if (regex[name]) {
+            if (value !== '' && !regex[name].test(value)) {
+                if (name === 'contact') {
+                     showError(input, 'Invalid contact format (5-20 characters, includes +,-,(), space).');
+                } else if (name === 'taxId') {
+                     showError(input, 'Tax ID must be alphanumeric (max 20 characters).');
+                } else if (name === 'pinCode') {
+                     showError(input, 'Pin code must be 3-10 alphanumeric characters.');
+                } else if (name === 'customerName') {
+                     showError(input, 'Customer name is required and cannot exceed 100 characters.');
+                } else {
+                     showError(input, `Invalid format for ${name}.`);
+                }
+                return false;
+            }
+        }
+
+        if ((name === 'billingAddress' || name === 'shippingAddress') && value.length > 255) {
+            showError(input, `${name.charAt(0).toUpperCase() + name.slice(1)} cannot exceed 255 characters.`);
+            return false;
+        }
+
+        if (input.tagName === 'SELECT' && value === '') {
+            showError(input, `${name.charAt(0).toUpperCase() + name.slice(1)} is required.`);
+            return false;
+        }
+
+        hideError(input);
+        return true;
+    }
+
+    // --- Change Detection (checkFormValidityAndChanges - unchanged) ---
+    function checkFormValidityAndChanges() {
+        let formIsValid = true;
+        let changesDetected = false;
+
+        formInputs.forEach(input => {
+            if (isEditMode && !input.disabled && !validateField(input)) {
+                formIsValid = false;
+            }
+
+            const currentValue = input.value;
+            const originalValue = initialValues[input.name];
+
+            const isSelect = input.tagName === 'SELECT';
+            const valueToCheck = isSelect ? input.options[input.selectedIndex]?.value || '' : currentValue;
+
+            if (valueToCheck !== originalValue) {
+                changesDetected = true;
+            }
+        });
+
+        if (shippingToggle && shippingToggle.checked !== initialValues['shippingToggle']) {
+            changesDetected = true;
+        }
+
+        isChanged = changesDetected;
+        saveChangesBtn.disabled = !(changesDetected && formIsValid && isEditMode);
+    }
+
+    // --- 5. EDIT/CANCEL MODE TOGGLE (KEY UPDATE HERE) ---
+
+    function captureInitialValues() {
+        formInputs.forEach(input => {
+            initialValues[input.name] = input.dataset.original || input.value;
+        });
+        initialValues['shippingToggle'] = shippingToggle ? shippingToggle.checked : false;
+    }
+
+    function toggleEditMode(enable) {
+        isEditMode = enable;
+
+        formInputs.forEach(input => {
+            // *** CORE FIX: Explicitly set/remove the disabled attribute ***
+            if (input.id !== 'customerIdDisplay') { // Ensure ID field stays disabled
+                input.disabled = !enable;
+            }
+            // Also toggle the read-only class for styling
+            input.classList.toggle('read-only', !enable);
+
+            if (!enable) {
+                // If exiting (Cancel), reset values
+                const originalValue = initialValues[input.name];
+
+                if (input.tagName === 'SELECT') {
+                    Array.from(input.options).forEach(option => {
+                        option.selected = option.value === originalValue;
+                    });
+                } else {
+                    input.value = originalValue;
+                }
+                clearStatus(input);
+            }
+        });
+
+        // Toggle buttons and shipping checkbox visibility
+        if (enable) {
+            editToggleBtn.innerHTML = '<i class="bi bi-x-square me-1"></i> Cancel Edit';
+            editToggleBtn.classList.replace('btn-prodex-edit', 'btn-danger');
+            saveChangesBtn.classList.remove('d-none');
+            editModeElements.forEach(el => el.classList.remove('d-none'));
+            checkFormValidityAndChanges();
+        } else {
+            editToggleBtn.innerHTML = '<i class="bi bi-pencil-square me-1"></i> Edit Details';
+            editToggleBtn.classList.replace('btn-danger', 'btn-prodex-edit');
+            saveChangesBtn.classList.add('d-none');
+            editModeElements.forEach(el => el.classList.add('d-none'));
+
+            if (shippingToggle) {
+                shippingToggle.checked = initialValues['shippingToggle'];
+                toggleShippingAddressField(shippingToggle.checked, false);
+            }
+
+            saveChangesBtn.disabled = true;
+            isChanged = false;
+        }
+    }
+
+    // --- 6. SHIPPING ADDRESS LOGIC (unchanged) ---
+    function toggleShippingAddressField(isChecked, isUserAction) {
+        if (!shippingToggle) return;
+
+        if (isChecked) {
+            shippingAddressInput.value = billingAddressInput.value;
+            shippingAddressInput.disabled = true;
+            shippingAddressInput.classList.add('read-only');
+            shippingSameAsBillingHidden.value = 'true';
+        } else {
+            shippingAddressInput.disabled = !isEditMode;
+            shippingAddressInput.classList.remove('read-only');
+
+            if (isUserAction) {
+                shippingAddressInput.value = initialValues[shippingAddressInput.name] || '';
+            }
+            shippingSameAsBillingHidden.value = 'false';
+        }
+
+        validateField(shippingAddressInput);
+        checkFormValidityAndChanges();
+    }
+
+    // --- 7. EVENT LISTENERS SETUP (unchanged) ---
+
+    captureInitialValues();
+
+    if (shippingToggle) {
+        toggleShippingAddressField(shippingToggle.checked, false);
+    }
+
+    editToggleBtn.addEventListener('click', function() {
+        if (isEditMode) {
+            if (isChanged && !confirm("You have unsaved changes. Are you sure you want to cancel and lose them?")) {
+                return;
+            }
+            toggleEditMode(false);
+        } else {
+            toggleEditMode(true);
+        }
+    });
+
+    formInputs.forEach(input => {
+        const eventType = input.tagName === 'SELECT' ? 'change' : 'input';
+
+        input.addEventListener(eventType, function() {
+            validateField(this);
+            checkFormValidityAndChanges();
+        });
+    });
+
+    if (shippingToggle) {
+        shippingToggle.addEventListener('change', function() {
+            toggleShippingAddressField(this.checked, true);
+        });
+
+        billingAddressInput.addEventListener('input', function() {
+            if (shippingToggle.checked) {
+                shippingAddressInput.value = this.value;
+            }
+            validateField(this);
+            checkFormValidityAndChanges();
+        });
+    }
+
+    // Re-enable edit mode if there are server-side errors
+    if (document.querySelector('.input-error-highlight')) {
+        toggleEditMode(true);
+    }
+});

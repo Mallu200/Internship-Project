@@ -1,0 +1,16 @@
+document.addEventListener("DOMContentLoaded", function () {
+
+  // Updates the date and time display element in the footer.
+  function updateDateTime() {
+    const now = new Date();
+    const datetimeElement = document.getElementById("datetime");
+    if (datetimeElement) {
+      datetimeElement.textContent = now.toLocaleString();
+    }
+  }
+
+  // Displays the date and time immediately upon page load.
+  updateDateTime();
+  // Calls the updateDateTime function every 1000 milliseconds (1 second).
+  setInterval(updateDateTime, 1000);
+});
